@@ -84,7 +84,9 @@ class API(object):
                 self.sessionid = self.login()
                 return self._submit_request(xml_dict, retry=False,
                                                                 secure=secure)
-            elif not auth:
+            elif auth:
+                pass
+            else:
                 raise exc
         
         return response['RESULT']
