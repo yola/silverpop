@@ -33,7 +33,7 @@ class API(object):
         if not sessionid:
             raise AuthException()
             
-        logging.info("New Silverpop sessionid acquired: %s" % sessionid)
+        logger.info("New Silverpop sessionid acquired: %s" % sessionid)
         
         return sessionid
     
