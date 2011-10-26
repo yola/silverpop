@@ -1,7 +1,9 @@
 import requests
 import logging
 
-from xml import ConvertXmlToDict
+from elementtree import ElementTree
+
+from xml import ConvertXmlToDict, ConvertDictToXml
 from exceptions import AuthException
 
 logger = logging.getLogger(__name__)
@@ -17,15 +19,9 @@ class API(object):
     def login(self):
         '''Connects to Silverpop and attempts to retrieve a jsessionid for
         secure request purposes.'''
-        xml = \
-        '''<Envelope>''' \
-        '''    <Body>''' \
-        '''        <Login>''' \
-        '''            <USERNAME>%s</USERNAME>''' \
-        '''            <PASSWORD>%s</PASSWORD>'''  \
-        '''        </Login>''' \
-        '''    </Body>''' \
-        '''</Envelope>''' % (self.username, self.password)
+        xml = self._get_xml_document()
+        xml['Envelope']['Body'] = \
+            {'Login': {'USERNAME': self.username, 'PASSWORD': self.password}}
         
         sessionid = None
         response = self._submit_request(xml, secure=False, retry=False)
@@ -36,20 +32,18 @@ class API(object):
         
         if not sessionid:
             raise AuthException()
+            
+        logging.info("New Silverpop sessionid acquired: %s" % sessionid)
         
         return sessionid
     
     def _get_xml_document(self):
-        from xml.dom.minidom import getDOMImplementation
-        payload = \
-                 getDOMImplementation().createDocument(None, 'Envelope', None)
-        payload.body = payload.createElement('Body')
-        payload.documentElement.appendChild(payload.body)
-        return payload
+        return {'Envelope': {'Body': None}}
     
     def _submit_request(self, xml, retry=True, secure=True):
         '''Submits an XML payload to silverpop, parses the result, and returns
         it.'''
+        xml = ElementTree.tostring(ConvertDictToXml(xml))
         url = self.secure_url if secure else self.url
         
         response = requests.post(self.url, data=xml,
