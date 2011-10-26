@@ -1,2 +1,3 @@
 requests==0.7.3
 testify==0.1.12
+elementtree==1.2.7-20070827-preview
