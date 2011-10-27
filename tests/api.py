@@ -46,3 +46,18 @@ class RetryTestCase(TestCase):
         self.api.password = 'failed'
         data = self.api.get_user_info(list_id, retrieve_email)
         assert_equal(retrieve_email, data['EMAIL'])
+
+class AddUserTestCase(TestCase):
+    @class_setup
+    def init_api_object(self):
+        from time import time
+        self.api = API(url, username, password, sessionid)
+        self.email = 'test%s@fake.tld' % time()
+        self.created = self.api.add_user(list_id, self.email,
+                                                  {'Currency': 'USD'})
+    def test_add_user(self):
+        assert_equal(self.created, True)
+    
+    def test_retrieval_of_new_user(self):
+        assert_in({'NAME': 'Currency', 'VALUE': 'USD'}, 
+             self.api.get_user_info(list_id, self.email)['COLUMNS']['COLUMN'])

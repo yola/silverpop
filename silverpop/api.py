@@ -23,11 +23,8 @@ class API(object):
             {'Login': {'USERNAME': self.username, 'PASSWORD': self.password}}
         
         sessionid = None
-        response = self._submit_request(xml, retry=False, auth=True)
-        success = response.get('SUCCESS', 'false').lower()
-        
-        if success == 'success' or success == 'true':
-            sessionid = response.get('SESSIONID', None)
+        response, success = self._submit_request(xml, retry=False, auth=True)
+        sessionid = response.get('SESSIONID') if success else None
         
         if not sessionid:
             raise AuthException()
@@ -46,10 +43,35 @@ class API(object):
                 'EMAIL': email
             }
         }
-        result = self._submit_request(xml)
+        result, success = self._submit_request(xml)
         
         return result
     
+    def add_user(self, list_id, email, data={}):
+        '''Adds a user to the specified list. Supports adding additional 
+        attributes via passing a dictionary to the data parameter.'''
+        # Build the XML
+        xml = self._get_xml_document()
+        xml['Envelope']['Body'] = {
+            'AddRecipient': {
+                'LIST_ID': list_id,
+                'CREATED_FROM': 2,
+                'COLUMN': [
+                    {'NAME':'EMAIL', 'VALUE':email}
+                ],
+            }
+        }
+        
+        # Append the data dictionary to the column list
+        for column, value in data.items():
+            xml['Envelope']['Body']['AddRecipient']['COLUMN'].append(
+                {'NAME':column, 'VALUE':value,}
+            )
+        
+        result, success = self._submit_request(xml)
+        
+        return success
+        
     def _get_xml_document(self):
         return {'Envelope': {'Body': None}}
     
@@ -89,5 +111,5 @@ class API(object):
             else:
                 raise exc
         
-        return response['RESULT']
+        return response['RESULT'], success
         
