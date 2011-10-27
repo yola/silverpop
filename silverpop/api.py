@@ -135,7 +135,7 @@ class API(object):
         return {'Envelope': {'Body': None}}
     
     def _submit_request(self, xml_dict, retry=True, auth=False):
-        '''Submits an XML payload to silverpop, parses the result, and returns
+        '''Submits an XML payload to Silverpop, parses the result, and returns
         it.'''
         xml = ElementTree.tostring(ConvertDictToXml(xml_dict))
         url = '%s;jsessionid=%s' % (self.url, self.sessionid) if not auth \
