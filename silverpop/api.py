@@ -104,6 +104,20 @@ class API(object):
 
         return success
     
+    def opt_out_user(self, list_id, email):
+        '''Opts a user out on the specified list.'''
+        xml = self._get_xml_document()
+        xml['Envelope']['Body'] = {
+            'OptOutRecipient': {
+                'LIST_ID': list_id,
+                'EMAIL': email,
+            }
+        }
+        
+        result, success = self._submit_request(xml)
+        
+        return success
+    
     def _sanitize_columns_in_api_result(self, data):
         '''Post result parsing, the value of the columns key, if it exists,
         will look something this format:

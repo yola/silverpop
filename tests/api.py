@@ -108,3 +108,24 @@ class UpdateUserTestCase(TestCase):
     def test_update_succeeded(self):
         assert_equal(self.result, True)
         assert_equal(self.updated_domain_count, str(self.new_domain_count))
+        
+
+class OptOutTestCase(TestCase):
+    @class_setup
+    def init_api_object(self):
+        self.api = API(url, username, password, sessionid)
+        self.api.add_user(list_id, 'optout@fake.tld')
+        
+        self.opt_out = self.api.opt_out_user(list_id, 'optout@fake.tld')
+        
+        self.user_data = self.api.get_user_info(list_id, 'optout@fake.tld')
+        
+        self.api.remove_user(list_id, 'optout@fake.tld')
+    
+    def test_opt_out_call_success(self):
+        assert_equal(self.opt_out, True)
+    
+    def test_silverpop_says_opted_out(self):
+        assert_not_equal(self.user_data['OptedOut'], '')
+    
+    
