@@ -30,22 +30,25 @@ class DataRetrievalTestCase(TestCase):
         assert_raises(ResponseException, self.api.get_user_info, list_id,
                                                               'fake@fake.tld')
 
-class RetryTestCase(TestCase):
-    '''This test case is not working because the get_user_info method is 
-    mysteriously working without authentication.'''
-    
-    @setup
-    def init_api_object(self):
-        self.api = API(url, username, password, sessionid='fake')
-    
-    def test_retrieval_retries(self):
-        data = self.api.get_user_info(list_id, retrieve_email)
-        assert_equal(retrieve_email, data['EMAIL'])
-    
-    def test_retrieval_throws_auth_exception_if_auth_fails(self):
-        self.api.password = 'failed'
-        data = self.api.get_user_info(list_id, retrieve_email)
-        assert_equal(retrieve_email, data['EMAIL'])
+#class RetryTestCase(TestCase):
+#    '''This test case is not working because the machine I'm using to write 
+#    this is whitelisted and the API does not require authentication from
+#    whitelisted machines.'''
+#    
+#    @setup
+#    def init_api_object(self):
+#        self.api = API(url, username, password, sessionid='gogogadget')
+#    
+#    def test_retrieval_retries(self):
+#        data = self.api.update_user(list_id, retrieve_email,
+#                                                {'PurchasedDomainCount': 72})
+#        assert_equal(data, True)
+#    
+#    def test_retrieval_throws_auth_exception_if_auth_fails(self):
+#        self.api.password = 'failed'
+#        assert_raises(AuthException, self.api.update_user, list_id,
+#                                retrieve_email, {'PurchasedDomainCount': 90})
+
 
 class AddUserTestCase(TestCase):
     @class_setup
