@@ -50,21 +50,35 @@ class DataRetrievalTestCase(TestCase):
 #                                retrieve_email, {'PurchasedDomainCount': 90})
 
 
-class AddUserTestCase(TestCase):
+class AddAndRemoveUserTestCase(TestCase):
     @class_setup
     def init_api_object(self):
         from time import time
         self.api = API(url, username, password, sessionid)
         self.email = 'test%s@fake.tld' % time()
+        
+        # Create the user
         self.created = self.api.add_user(list_id, self.email,
                                                   {'Currency': 'USD'})
-    def test_add_user(self):
+        self.retrieved_currency = \
+            self.api.get_user_info(list_id, self.email)['COLUMNS']['Currency']
+    
+        # Remove the user
+        self.removed = self.api.remove_user(list_id, self.email)
+    
+    def test_user_created(self):
         assert_equal(self.created, True)
     
-    def test_retrieval_of_new_user(self):
-        assert_in('USD', 
-           self.api.get_user_info(list_id, self.email)['COLUMNS']['Currency'])
-             
+    def test_retrieval_of_new_user_succeeded(self):
+        assert_in('USD', self.retrieved_currency)
+    
+    def test_user_removed(self):
+        assert_equal(self.removed, True)
+    
+    def test_retrieval_of_removed_user_fails(self):
+        assert_raises(ResponseException,
+                                  self.api.get_user_info, list_id, self.email)
+    
 class UpdateUserTestCase(TestCase):
     @class_setup
     def init_api_object(self):

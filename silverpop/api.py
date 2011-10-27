@@ -68,6 +68,20 @@ class API(object):
         
         return success
     
+    def remove_user(self, list_id, email):
+        '''Removes a user from the specified list.'''
+        xml = self._get_xml_document()
+        xml['Envelope']['Body'] = {
+            'RemoveRecipient': {
+                'LIST_ID': list_id,
+                'EMAIL': email,
+            }
+        }
+        
+        result, success = self._submit_request(xml)
+        
+        return success
+        
     def update_user(self, list_id, email, data):
         '''Updates an existing user in Silverpop based on the email address as
         the primary key. The data parameter is a dictionary that maps column
