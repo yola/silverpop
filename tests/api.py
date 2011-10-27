@@ -59,5 +59,35 @@ class AddUserTestCase(TestCase):
         assert_equal(self.created, True)
     
     def test_retrieval_of_new_user(self):
-        assert_in({'NAME': 'Currency', 'VALUE': 'USD'}, 
-             self.api.get_user_info(list_id, self.email)['COLUMNS']['COLUMN'])
+        assert_in('USD', 
+           self.api.get_user_info(list_id, self.email)['COLUMNS']['Currency'])
+             
+class UpdateUserTestCase(TestCase):
+    @class_setup
+    def init_api_object(self):
+        self.api = API(url, username, password, sessionid)
+        self.user_info = self.api.get_user_info(list_id, retrieve_email)
+        self.domain_count = \
+                            self.user_info['COLUMNS']['PurchasedDomainCount']
+        self.new_domain_count = 0 if self.domain_count == '' else \
+                                                    int(self.domain_count) + 1
+                                                    
+        self.result = self.api.update_user(list_id, retrieve_email,
+                               {'PurchasedDomainCount':self.new_domain_count})
+        
+        self.updated_user_info = \
+                               self.api.get_user_info(list_id, retrieve_email)
+        self.updated_domain_count = \
+                     self.updated_user_info['COLUMNS']['PurchasedDomainCount']
+                     
+    def test_data_param_required(self):
+        assert_raises(AssertionError, self.api.update_user,
+                                                  list_id, retrieve_email, {})
+    
+    def test_data_param_must_be_dict(self):
+        assert_raises(AssertionError, self.api.update_user,
+                                                list_id, retrieve_email, [1,])
+    
+    def test_update_succeeded(self):
+        assert_equal(self.result, True)
+        assert_equal(self.updated_domain_count, str(self.new_domain_count))

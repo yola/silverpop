@@ -61,17 +61,76 @@ class API(object):
                 ],
             }
         }
-        
-        # Append the data dictionary to the column list
-        for column, value in data.items():
-            xml['Envelope']['Body']['AddRecipient']['COLUMN'].append(
-                {'NAME':column, 'VALUE':value,}
-            )
+        xml['Envelope']['Body']['AddRecipient']['COLUMN'].extend(
+                                                  self._data_to_columns(data))
         
         result, success = self._submit_request(xml)
         
         return success
+    
+    def update_user(self, list_id, email, data):
+        '''Updates an existing user in Silverpop based on the email address as
+        the primary key. The data parameter is a dictionary that maps column
+        names to their new values.'''
         
+        assert len(data) >= 1, \
+                  'Data parameter must contain at least one column/value pair'
+        
+        xml = self._get_xml_document()
+        xml['Envelope']['Body'] = {
+            'UpdateRecipient': {
+                'LIST_ID': list_id,
+                'CREATED_FROM': 2,
+                'OLD_EMAIL': email,
+                'COLUMN': self._data_to_columns(data),
+            }
+        }
+        
+        result, success = self._submit_request(xml)
+
+        return success
+    
+    def _sanitize_columns_in_api_result(self, data):
+        '''Post result parsing, the value of the columns key, if it exists,
+        will look something this format:
+        
+        COLUMNS:[{'COLUMN':{'NAME':'<name>', 'VALUE':'<value>'}, ...}]. This
+        method replaces the value of the columns key with a dictionary that
+        looks like this:
+        
+        COLUMNS: {'<name>': <value>}'''
+        columns = data.get('COLUMNS', {}).get('COLUMN', [])
+        
+        # Don't touch the original data if there aren't any columns.
+        if len(columns) < 1:
+            return data
+        
+        out= {}
+        if type(columns) == dict:
+            out[columns['NAME']] = columns['VALUE']
+        else:
+            for column in columns:
+                out[column['NAME']] = column['VALUE']
+        
+        data['COLUMNS'] = out
+        
+        return data
+    
+    def _data_to_columns(self, data):
+        '''Iterates through a data dictionary, building a list of the format
+        [{'NAME':'<name>', 'VALUE':'<value>'},...]. The result can be set to
+        the COLUMN key in a dictionary that will be converted to XML for
+        Silverpop consumption.'''
+        assert callable(getattr(data, 'items', None)), \
+                            'Data parameter must have a callable called items'
+        
+        # Append the data dictionary to the column list
+        columns = []
+        for column, value in data.items():
+            columns.append({'NAME':column, 'VALUE':value,})
+            
+        return columns
+    
     def _get_xml_document(self):
         return {'Envelope': {'Body': None}}
     
@@ -111,5 +170,6 @@ class API(object):
             else:
                 raise exc
         
-        return response['RESULT'], success
+        return self._sanitize_columns_in_api_result(response['RESULT']), \
+                                                                       success
         
