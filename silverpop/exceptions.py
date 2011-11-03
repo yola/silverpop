@@ -10,6 +10,7 @@ class AuthException(Exception):
 class ResponseException(Exception):
     def __init__(self, api_response):
         self.fault = api_response
-        logger.info("API Call failed: %s" % api_response)
-        super(ResponseException, self).__init__('API call failed.')
+        message = "API Call failed: %s" % api_response
+        logger.info(message)
+        super(ResponseException, self).__init__(message)
         
